@@ -8,12 +8,6 @@ import random
 
 
 #Lotka-Volterra equations for a pair of predator-prey species
-alpha = 1.
-beta = 1.
-delta = 1.
-gamma = 1.
-x0 = 4.
-y0 = 2.
 def lotka_prey(X, t, alpha, beta, delta, gamma):
     x, y = X
     dotx = x * (alpha - beta * y)
