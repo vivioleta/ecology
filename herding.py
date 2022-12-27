@@ -12,7 +12,7 @@ Implemeting the herding model from https://royalsocietypublishing.org/doi/full/1
 """
 
 class model:
-        def __init__(self,  A, V, S, rs = 65.0, ra = 2.0, h = 0.5, c = 1.05, pa = 2, ps = 1.0, e = 0.3, delta0 = 1, deltaS = 3):
+        def __init__(self,  A, V, S, rs = 65.0, ra = 5.0, h = 0.5, c = 1.05, pa = 2, ps = 1.0, e = 0.3, delta0 = 1, deltaS = 4.5):
             self.A= np.float64(A)
             self.V = np.float64(V)
             self.S= np.float64(S)
@@ -48,7 +48,6 @@ class model:
                 return model(self.A,self.V,self.S)
             else:
                 closeneighbors = np.array([self.A[j] for j in range(self.N) if (model.distance(self.A[i],self.A[j]) < self.ra) & (j != i)])
-                print(closeneighbors)
                 if np.any(closeneighbors):
                     vetorzinho = np.array([model.normalize(self.A[i] - b) for b in closeneighbors])
                     repels = model.normalize(np.sum(vetorzinho, axis = 0))
