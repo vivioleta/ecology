@@ -3,6 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import animation, cm
 
+"""
+Implemeting some cellular automata.
+
+Notes:
+(1): Code for the Game Of Life automata mostly taken from https://scientific-python.readthedocs.io/en/latest/notebooks_rst/0_Python/10_Examples/GameOfLife.html
+
+"""
 
 class LLCA:
     """
@@ -54,30 +61,34 @@ class LLCA:
         for s in S: C1 += (C & (N == s))
         self.C[:] = C1 > 0
 
-# INITIAL CONFIGURATION
-N = 100
-t = np.random.rand(N + 1)
-X, Y = np.meshgrid(t, t)
-f = 4
-C0 = np.sin(2. * np.pi * f * X ) * np.sin(2. * np.pi * 2 * f * Y )  > -.1
-g = LLCA(C0, rule = "B2S23")
-plt.figure()
-plt.imshow(C0, cmap = cm.gray)
-plt.axis('off')
-plt.show()
+def make_test():
+    N = 100
+    t = np.random.rand(N + 1)
+    X, Y = np.meshgrid(t, t)
+    f = 4
+    C0 = np.sin(2. * np.pi * f * X ) * np.sin(2. * np.pi * 2 * f * Y )  > -.1
+    g = LLCA(C0, rule = "B2S23")
+    return g
 
-# ANIMATION
-def updatefig(*args):
-    g.iterate()
-    im.set_array(g.C)
-    return im,
+def show_grid(g):
+    plt.figure()
+    plt.imshow(g.C, cmap = cm.gray)
+    plt.axis('off')
+    plt.show()
 
-fig = plt.figure()
-plt.axis('off')
-im = plt.imshow(g.C, interpolation = "nearest", cmap = cm.binary)
-writer = animation.PillowWriter(fps = 15)
-with writer.saving(fig, "automato.gif", 100):
-    for n in range(100):
-        updatefig()
-        writer.grab_frame()
-        writer.grab_frame()
+
+def make_gif(g):
+    def updatefig(*args):
+        g.iterate()
+        im.set_array(g.C)
+        return im,
+
+    fig = plt.figure()
+    plt.axis('off')
+    im = plt.imshow(g.C, interpolation = "nearest", cmap = cm.binary)
+    writer = animation.PillowWriter(fps = 15)
+    with writer.saving(fig, "automato.gif", 100):
+        for n in range(100):
+            updatefig()
+            writer.grab_frame()
+            writer.grab_frame()
