@@ -115,7 +115,7 @@ def makegif(moo, L = 150, frames = 500):
     agents, = plt.plot(moo.A.T[0],moo.A.T[1],'xb')
     shepherd, = plt.plot(moo.S.T[0],moo.S.T[1],'or')
     #showgcm, = plt.plot(moo.GCM.T[0],moo.GCM.T[1], 'og')
-    showOrigin = plt.plot([0],[0], 'og')
+    showOrigin = plt.plot([0],[0], '^g')
 
     writer = PillowWriter(fps = 15)
     with writer.saving(fig, "herding.gif", 100):
