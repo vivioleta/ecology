@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
 from math import sqrt
 import matplotlib.pyplot as plt
-from matplotlib import animation, cm
 from matplotlib.animation import PillowWriter
 
 """
@@ -14,7 +12,7 @@ Notes:
 
 """
 
-class model:
+class Herding:
         def __init__(self,  A, V, S, rs = 65.0, ra = 4.0, h = 0.5, c = 1.05, pa = 2, ps = 1.0, e = 0.3, delta0 = 1, deltaS = 3.8):
             self.A= np.float64(A)
             self.V = np.float64(V)
@@ -45,41 +43,42 @@ class model:
             return P/norma
 
         def updateAgent(self, i):
-            epsilon = model.normalize(np.random.normal(size = 2)) #choosing a random unit vector
-            if model.distance(self.A[i],self.S) > self.rs:
+            epsilon = Herding.normalize(np.random.normal(size = 2)) #choosing a random unit vector
+            if Herding.distance(self.A[i],self.S) > self.rs:
                 self.A[i] = self.A[i] + self.e*epsilon
-                return model(self.A,self.V,self.S)
+                return Herding(self.A,self.V,self.S)
             else:
-                closeneighbors = np.array([self.A[j] for j in range(self.N) if (model.distance(self.A[i],self.A[j]) < self.ra) & (j != i)])
+                closeneighbors = np.array([self.A[j] for j in range(self.N) if (Herding.distance(self.A[i],self.A[j]) < self.ra) & (j != i)])
                 if np.any(closeneighbors):
-                    vetorzinho = np.array([model.normalize(self.A[i] - b) for b in closeneighbors])
-                    repels = model.normalize(np.sum(vetorzinho, axis = 0))
+                    vetorzinho = np.array([Herding.normalize(self.A[i] - b) for b in closeneighbors])
+                    repels = Herding.normalize(np.sum(vetorzinho, axis = 0))
                 else:
                     repels = np.zeros(2)
-                self.V[i] = (self.h)*self.V[i] + (self.c) * model.normalize((self.LCM[i] - self.A[i])) + (self.pa)*repels + (self.ps)*model.normalize(self.A[i] - self.S) + (self.e)*epsilon
+                self.V[i] = (self.h)*self.V[i] + (self.c) * Herding.normalize((self.LCM[i] - self.A[i])) + (self.pa)*repels + (self.ps)*Herding.normalize(self.A[i] - self.S) + (self.e)*epsilon
                 self.A[i] = self.A[i] + (self.delta0)*self.V[i]
-                return model(self.A,self.V,self.S)
+                return Herding(self.A,self.V,self.S)
 
         def updateShepherd(self):
-            distances_gcm = np.array([model.distance(a,self.GCM) for a in self.A])
-            distances_shepherd = np.array([model.distance(a,self.S) for a in self.A])
+            distances_gcm = np.array([Herding.distance(a,self.GCM) for a in self.A])
+            distances_shepherd = np.array([Herding.distance(a,self.S) for a in self.A])
             #making the shepherd chill if they're too close to an agent
             if any(distances_shepherd < (3*self.ra)):
-                return model(self.A,self.V,self.S)
+                return Herding(self.A,self.V,self.S)
             #Collecting
             if np.any(distances_gcm > self.dn):
                 #print('Collecting')
                 runaway_index = np.argmax(distances_gcm)
                 runaway = self.A[runaway_index]
-                Pc = runaway + (3*self.ra) * model.normalize(runaway - self.GCM)
-                self.S = self.S + self.deltaS * model.normalize(Pc - self.S)
-                return model(self.A,self.V,self.S)
+                Pc = runaway + (3*self.ra) * Herding.normalize(runaway - self.GCM)
+                self.S = self.S + self.deltaS * Herding.normalize(Pc - self.S)
+                return Herding(self.A,self.V,self.S)
             #Herding
             else:
                 #print('Herding')
-                Pd = self.GCM + self.ra*sqrt(self.N)*model.normalize(self.GCM)
-                self.S = self.S + self.deltaS * model.normalize(Pd - self.S)
-                return model(self.A,self.V,self.S)
+                Pd = self.GCM + self.ra*sqrt(self.N)*Herding.normalize(self.GCM)
+                self.S = self.S + self.deltaS * Herding.normalize(Pd - self.S)
+                return Herding(self.A,self.V,self.S)
+
         def updateAll(self):
             for i in range(self.N): self = self.updateAgent(i)
             self = self.updateShepherd()
@@ -103,7 +102,7 @@ def maketest(L = 150,n = 10):
     ag = np.array(coord)
     vl = np.zeros([2,n]).T + 0.001
     sh = np.array(coordS)
-    moo = model(ag,vl,sh)
+    moo = Herding(ag,vl,sh)
     return moo
 
 def makegif(moo, L = 150, frames = 500):

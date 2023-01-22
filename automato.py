@@ -1,10 +1,10 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import animation, cm
+import itertools
 
 """
-Implemeting some cellular automata.
+Implementing cellular automata that are variations of the Game of Life.
 
 Notes:
 (1): Code for the Game Of Life automata mostly taken from https://scientific-python.readthedocs.io/en/latest/notebooks_rst/0_Python/10_Examples/GameOfLife.html
@@ -20,7 +20,7 @@ class LLCA:
     * rule: the rule of the in the format 'BXSY' where X and Y are the birth and survival conditions.
             Example: GOL rule is "B3S23".
     """
-    def __init__(self, C = np.random.rand(50, 50), rule = "B3S23"):
+    def __init__(self, C = np.random.rand(50, 50) > .5, rule = "B3S23"):
         self.C = np.array(C).astype(np.bool_)
         self.rule = rule
 
@@ -61,23 +61,14 @@ class LLCA:
         for s in S: C1 += (C & (N == s))
         self.C[:] = C1 > 0
 
-def make_test():
-    N = 100
-    t = np.random.rand(N + 1)
-    X, Y = np.meshgrid(t, t)
-    f = 4
-    C0 = np.sin(2. * np.pi * f * X ) * np.sin(2. * np.pi * 2 * f * Y )  > -.1
-    g = LLCA(C0, rule = "B2S23")
-    return g
+    def show_grid(self):
+        plt.figure()
+        plt.imshow(self.C, cmap = cm.gray)
+        plt.axis('off')
+        plt.show()
 
-def show_grid(g):
-    plt.figure()
-    plt.imshow(g.C, cmap = cm.gray)
-    plt.axis('off')
-    plt.show()
-
-
-def make_gif(g):
+#a function for making gif animations of iterations of the automata
+def makegif(g, t):
     def updatefig(*args):
         g.iterate()
         im.set_array(g.C)
@@ -88,7 +79,52 @@ def make_gif(g):
     im = plt.imshow(g.C, interpolation = "nearest", cmap = cm.binary)
     writer = animation.PillowWriter(fps = 15)
     with writer.saving(fig, "automato.gif", 100):
-        for n in range(100):
+        for n in range(t):
             updatefig()
             writer.grab_frame()
             writer.grab_frame()
+
+#creating a random N-sized grid for testing the Game of Life
+def maketest(N = 100):
+    t = np.random.rand(N + 1)
+    X, Y = np.meshgrid(t, t)
+    f = 4
+    C0 = np.sin(2. * np.pi * f * X ) * np.sin(2. * np.pi * 2 * f * Y )  > -.1
+    g = LLCA(C0, rule = "B2S23")
+    return g
+
+
+#seeking for interesting alternative rules to the Game of Life by looking for repeating patterns
+def cartesian(*arrays):
+    la = len(arrays)
+    dtype = np.result_type(*arrays)
+    arr = np.empty([len(a) for a in arrays] + [la], dtype=dtype)
+    for i, a in enumerate(np.ix_(*arrays)):
+        arr[...,i] = a
+    return arr.reshape(-1, la)
+
+def seeker(batch = 100, iteractions = 100):
+    births = cartesian(np.arange(4),np.arange(4))
+    survivals = cartesian(np.arange(4),np.arange(4))
+
+    possible_two_rules = []
+    for a,b in zip(births,survivals):
+        rule = (a,b)
+        possible_two_rules.append(rule)
+
+    possible_cool_list = []
+    bunch = [np.random.rand(5, 5) > .5 for _ in range(batch)]
+    for rule in possible_two_rules:
+        for b in bunch:
+            seen_patterns = []
+            moo = LLCA(b, rule = "B" + str(rule[0][0]) + str(rule[0][1]) + "S" + str(rule[1][0]) + str(rule[1][1]))
+            for _ in range(iteractions):
+                moo.iterate()
+                if moo.C in seen_patterns:
+                    soo = LLCA(moo.C, moo.rule)
+                    possible_cool_list.append(soo)
+                    break
+                else:
+                    seen_patterns.append(moo.C)
+
+    return possible_cool_list
